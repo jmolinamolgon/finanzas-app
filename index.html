@@ -10,7 +10,6 @@
   <link rel="manifest" href="manifest.json">
   <title>FinanzasDúo</title>
   <style>
-    /* ===== RESET & BASE ===== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
       --primary: #534AB7;
@@ -35,135 +34,121 @@
     html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
     body { background: var(--bg); color: var(--text); overflow: hidden; }
 
+    /* ===== LOADING SCREEN ===== */
+    #loading-screen {
+      position: fixed; inset: 0;
+      background: linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+      z-index: 9999;
+    }
+    .loader-emoji { font-size: 60px; animation: pulse 1.6s ease-in-out infinite; }
+    .loader-title { color: white; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+    .loader-sub { color: rgba(255,255,255,0.65); font-size: 14px; }
+    .spinner { width: 32px; height: 32px; border: 3px solid rgba(255,255,255,0.25); border-top-color: white; border-radius: 50%; animation: spin 0.75s linear infinite; margin-top: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+    /* ===== LOGIN SCREEN ===== */
+    #login-screen {
+      position: fixed; inset: 0;
+      background: linear-gradient(160deg, var(--primary-dark) 0%, var(--primary) 60%, var(--primary-light) 100%);
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      padding: 24px 20px; z-index: 500; overflow-y: auto;
+    }
+    #login-screen.visible { display: flex; }
+    .login-header { text-align: center; margin-bottom: 28px; }
+    .login-emoji { font-size: 52px; display: block; margin-bottom: 10px; }
+    .login-title { color: white; font-size: 28px; font-weight: 900; letter-spacing: -1px; }
+    .login-sub { color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 4px; }
+    .login-card {
+      background: white; border-radius: 24px; padding: 24px 20px;
+      width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .login-tabs { display: flex; background: var(--bg); border-radius: 10px; padding: 4px; margin-bottom: 20px; }
+    .login-tab {
+      flex: 1; padding: 10px; border: none; background: none; border-radius: 8px;
+      font-size: 14px; font-weight: 600; color: var(--text-2); cursor: pointer; transition: all 0.15s;
+    }
+    .login-tab.active { background: white; color: var(--primary); box-shadow: var(--shadow); }
+    .auth-error {
+      background: #FEE2E2; color: #991B1B; border-radius: 8px;
+      padding: 10px 12px; font-size: 13px; margin-bottom: 12px;
+    }
+    .login-footer { color: rgba(255,255,255,0.6); font-size: 12px; text-align: center; margin-top: 16px; }
+
     /* ===== LAYOUT ===== */
-    #app { display: flex; flex-direction: column; height: 100dvh; }
+    #app { display: none; flex-direction: column; height: 100dvh; }
+    #app.visible { display: flex; }
     .topbar {
-      background: var(--primary);
-      color: white;
-      padding: 0 20px;
-      height: var(--top-h);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-      position: relative;
-      z-index: 10;
+      background: var(--primary); color: white;
+      padding: 0 16px; height: var(--top-h);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0; position: relative; z-index: 10;
     }
-    .topbar h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-    .topbar .month-nav { display: flex; align-items: center; gap: 8px; }
+    .topbar h1 { font-size: 17px; font-weight: 700; letter-spacing: -0.3px; }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+    .month-nav { display: flex; align-items: center; gap: 6px; }
     .month-nav button {
-      background: rgba(255,255,255,0.15);
-      border: none;
-      color: white;
-      width: 30px; height: 30px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s;
+      background: rgba(255,255,255,0.15); border: none; color: white;
+      width: 28px; height: 28px; border-radius: 8px; cursor: pointer;
+      font-size: 16px; display: flex; align-items: center; justify-content: center;
     }
-    .month-nav button:hover { background: rgba(255,255,255,0.25); }
-    .month-nav span { font-size: 13px; font-weight: 600; min-width: 80px; text-align: center; }
-    .pages {
-      flex: 1;
-      overflow: hidden;
-      position: relative;
+    .month-nav span { font-size: 12px; font-weight: 600; min-width: 72px; text-align: center; }
+    .btn-logout {
+      background: rgba(255,255,255,0.15); border: none; color: white;
+      width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+      font-size: 16px; display: flex; align-items: center; justify-content: center;
     }
+    .pages { flex: 1; overflow: hidden; position: relative; }
     .page {
-      position: absolute;
-      inset: 0;
-      overflow-y: auto;
+      position: absolute; inset: 0; overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       padding: 16px 16px calc(var(--nav-h) + 16px);
       display: none;
     }
     .page.active { display: block; }
 
+    /* month loading overlay */
+    .month-loading {
+      position: absolute; inset: 0; background: rgba(245,245,250,0.8);
+      display: none; align-items: center; justify-content: center; z-index: 50;
+    }
+    .month-loading.visible { display: flex; }
+    .month-loading .spinner { border-color: rgba(83,74,183,0.2); border-top-color: var(--primary); }
+
     /* ===== BOTTOM NAV ===== */
     .bottom-nav {
-      height: var(--nav-h);
-      background: white;
-      border-top: 1px solid var(--border);
-      display: flex;
-      align-items: stretch;
-      flex-shrink: 0;
+      height: var(--nav-h); background: white; border-top: 1px solid var(--border);
+      display: flex; align-items: stretch; flex-shrink: 0;
       padding-bottom: env(safe-area-inset-bottom);
     }
     .nav-item {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-      cursor: pointer;
-      background: none;
-      border: none;
-      color: var(--text-2);
-      font-size: 10px;
-      font-weight: 500;
-      padding: 6px 0;
-      transition: color 0.15s;
-      -webkit-tap-highlight-color: transparent;
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; cursor: pointer; background: none; border: none;
+      color: var(--text-2); font-size: 10px; font-weight: 500; padding: 6px 0;
+      transition: color 0.15s; -webkit-tap-highlight-color: transparent;
     }
     .nav-item .icon { font-size: 22px; line-height: 1; }
     .nav-item.active { color: var(--primary); }
-    .nav-item.active .icon { transform: scale(1.1); }
 
     /* ===== FAB ===== */
     .fab {
-      position: fixed;
-      bottom: calc(var(--nav-h) + 16px);
-      right: 20px;
-      width: 56px; height: 56px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 50%;
-      font-size: 28px;
-      cursor: pointer;
-      box-shadow: var(--shadow-lg);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 100;
-      transition: transform 0.15s, background 0.15s;
+      position: fixed; bottom: calc(var(--nav-h) + 16px); right: 20px;
+      width: 56px; height: 56px; background: var(--primary); color: white;
+      border: none; border-radius: 50%; font-size: 28px; cursor: pointer;
+      box-shadow: var(--shadow-lg); display: flex; align-items: center; justify-content: center;
+      z-index: 100; transition: transform 0.15s, background 0.15s;
       -webkit-tap-highlight-color: transparent;
     }
     .fab:active { transform: scale(0.92); background: var(--primary-dark); }
 
     /* ===== CARDS ===== */
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-      margin-bottom: 12px;
-    }
-    .card-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-2);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 8px;
-    }
-    .card-amount {
-      font-size: 28px;
-      font-weight: 800;
-      color: var(--text);
-      letter-spacing: -1px;
-    }
-    .card-amount.income { color: var(--success); }
-    .card-amount.expense { color: var(--danger); }
-    .card-amount.debt { color: var(--warning); }
+    .card { background: var(--card); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 12px; }
+    .card-title { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
 
     /* ===== SUMMARY GRID ===== */
     .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-    .summary-card {
-      background: white;
-      border-radius: var(--radius-sm);
-      padding: 14px;
-      box-shadow: var(--shadow);
-    }
+    .summary-card { background: white; border-radius: var(--radius-sm); padding: 14px; box-shadow: var(--shadow); }
     .summary-card .label { font-size: 11px; color: var(--text-2); font-weight: 500; margin-bottom: 4px; }
     .summary-card .value { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
     .summary-card.income .value { color: var(--success); }
@@ -174,10 +159,7 @@
     /* ===== BALANCE HERO ===== */
     .balance-hero {
       background: linear-gradient(135deg, var(--primary), var(--primary-light));
-      border-radius: var(--radius);
-      padding: 24px 20px;
-      color: white;
-      margin-bottom: 12px;
+      border-radius: var(--radius); padding: 24px 20px; color: white; margin-bottom: 12px;
       box-shadow: var(--shadow-lg);
     }
     .balance-hero .label { font-size: 13px; opacity: 0.8; margin-bottom: 6px; }
@@ -186,152 +168,46 @@
 
     /* ===== PROGRESS BAR ===== */
     .progress-wrap { margin: 8px 0 4px; }
-    .progress-bar {
-      height: 8px;
-      background: var(--border);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      border-radius: 4px;
-      transition: width 0.4s ease;
-    }
+    .progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
     .progress-fill.green { background: var(--success); }
     .progress-fill.yellow { background: var(--warning); }
     .progress-fill.red { background: var(--danger); }
     .progress-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-2); margin-top: 4px; }
 
     /* ===== ALERT ===== */
-    .alert {
-      border-radius: var(--radius-sm);
-      padding: 12px 14px;
-      font-size: 13px;
-      font-weight: 500;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .alert { border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; font-weight: 500; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
     .alert.warning { background: #FEF3C7; color: #92400E; }
     .alert.danger { background: #FEE2E2; color: #991B1B; }
     .alert.info { background: var(--primary-bg); color: var(--primary-dark); }
 
     /* ===== TABS ===== */
-    .tabs {
-      display: flex;
-      background: white;
-      border-radius: var(--radius-sm);
-      padding: 4px;
-      margin-bottom: 14px;
-      box-shadow: var(--shadow);
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 9px 6px;
-      border: none;
-      background: none;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-2);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
+    .tabs { display: flex; background: white; border-radius: var(--radius-sm); padding: 4px; margin-bottom: 14px; box-shadow: var(--shadow); }
+    .tab-btn { flex: 1; padding: 9px 6px; border: none; background: none; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--text-2); cursor: pointer; transition: all 0.15s; }
     .tab-btn.active { background: var(--primary); color: white; box-shadow: var(--shadow); }
 
     /* ===== LIST ITEMS ===== */
-    .list-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 16px;
-      background: white;
-      border-radius: var(--radius-sm);
-      margin-bottom: 8px;
-      box-shadow: var(--shadow);
-    }
-    .item-icon {
-      width: 40px; height: 40px;
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-      flex-shrink: 0;
-    }
+    .list-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: white; border-radius: var(--radius-sm); margin-bottom: 8px; box-shadow: var(--shadow); }
+    .item-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
     .item-info { flex: 1; min-width: 0; }
     .item-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .item-meta { font-size: 12px; color: var(--text-2); margin-top: 2px; }
     .item-amount { font-size: 15px; font-weight: 700; flex-shrink: 0; }
     .item-amount.income { color: var(--success); }
     .item-amount.expense { color: var(--danger); }
-    .item-amount.debt { color: var(--warning); }
-    .item-actions { display: flex; gap: 6px; align-items: center; }
-    .btn-icon {
-      width: 30px; height: 30px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
-      transition: background 0.15s;
-    }
+    .btn-icon { width: 30px; height: 30px; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; }
     .btn-icon.delete { background: #FEE2E2; color: var(--danger); }
-    .btn-icon.delete:hover { background: var(--danger); color: white; }
-    .btn-icon.primary { background: var(--primary-bg); color: var(--primary); }
-    .btn-icon.primary:hover { background: var(--primary); color: white; }
 
     /* ===== SECTION HEADER ===== */
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-      padding: 0 2px;
-    }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 0 2px; }
     .section-header h3 { font-size: 15px; font-weight: 700; }
-    .total-badge {
-      background: var(--primary-bg);
-      color: var(--primary);
-      font-size: 13px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 20px;
-    }
-
-    /* ===== GROUP DATE ===== */
-    .date-group-header {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-2);
-      margin: 12px 0 6px;
-      padding: 0 4px;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
+    .total-badge { background: var(--primary-bg); color: var(--primary); font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+    .date-group-header { font-size: 12px; font-weight: 600; color: var(--text-2); margin: 12px 0 6px; padding: 0 4px; text-transform: uppercase; letter-spacing: 0.4px; }
 
     /* ===== MODAL ===== */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.45);
-      z-index: 200;
-      display: flex;
-      align-items: flex-end;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.25s;
-    }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
     .modal-overlay.open { opacity: 1; pointer-events: all; }
-    .modal {
-      background: white;
-      border-radius: 20px 20px 0 0;
-      padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
-      width: 100%;
-      max-height: 90dvh;
-      overflow-y: auto;
-      transform: translateY(100%);
-      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-    }
+    .modal { background: white; border-radius: 20px 20px 0 0; padding: 20px 20px calc(20px + env(safe-area-inset-bottom)); width: 100%; max-height: 90dvh; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); }
     .modal-overlay.open .modal { transform: translateY(0); }
     .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
     .modal h2 { font-size: 18px; font-weight: 800; margin-bottom: 20px; }
@@ -339,75 +215,19 @@
     /* ===== FORM ===== */
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
-    .form-group input, .form-group select {
-      width: 100%;
-      padding: 13px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 15px;
-      color: var(--text);
-      background: white;
-      -webkit-appearance: none;
-      outline: none;
-      transition: border-color 0.15s;
-    }
+    .form-group input, .form-group select { width: 100%; padding: 13px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; color: var(--text); background: white; -webkit-appearance: none; outline: none; transition: border-color 0.15s; }
     .form-group input:focus, .form-group select:focus { border-color: var(--primary); }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .btn-primary {
-      width: 100%;
-      padding: 15px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 6px;
-      transition: background 0.15s;
-    }
+    .btn-primary { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: var(--radius-sm); font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 6px; transition: background 0.15s; }
     .btn-primary:active { background: var(--primary-dark); }
-    .btn-secondary {
-      width: 100%;
-      padding: 13px;
-      background: var(--bg);
-      color: var(--text);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 8px;
-    }
+    .btn-secondary { width: 100%; padding: 13px; background: var(--bg); color: var(--text); border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; }
 
     /* ===== TOAST ===== */
-    #toast {
-      position: fixed;
-      bottom: calc(var(--nav-h) + 20px);
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: var(--text);
-      color: white;
-      padding: 12px 20px;
-      border-radius: 24px;
-      font-size: 14px;
-      font-weight: 500;
-      white-space: nowrap;
-      z-index: 999;
-      opacity: 0;
-      transition: opacity 0.2s, transform 0.2s;
-      pointer-events: none;
-    }
+    #toast { position: fixed; bottom: calc(var(--nav-h) + 20px); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: white; padding: 12px 20px; border-radius: 24px; font-size: 14px; font-weight: 500; white-space: nowrap; z-index: 999; opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     /* ===== DEBT CARD ===== */
-    .debt-card {
-      background: white;
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-bottom: 10px;
-      box-shadow: var(--shadow);
-    }
+    .debt-card { background: white; border-radius: var(--radius); padding: 16px; margin-bottom: 10px; box-shadow: var(--shadow); }
     .debt-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
     .debt-name { font-size: 15px; font-weight: 700; }
     .debt-cat { font-size: 11px; color: var(--text-2); margin-top: 2px; }
@@ -427,81 +247,93 @@
     .settings-section { margin-bottom: 20px; }
     .settings-section h3 { font-size: 13px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
     .settings-card { background: white; border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); }
-    .btn-outline {
-      display: flex; align-items: center; gap: 10px;
-      width: 100%;
-      padding: 14px;
-      background: white;
-      color: var(--text);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 10px;
-      text-align: left;
-    }
+    .btn-outline { display: flex; align-items: center; gap: 10px; width: 100%; padding: 14px; background: white; color: var(--text); border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 10px; text-align: left; }
     .btn-outline.danger { border-color: var(--danger); color: var(--danger); }
+    .user-email-badge { background: var(--primary-bg); color: var(--primary); border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 
     /* ===== EMPTY STATE ===== */
     .empty-state { text-align: center; padding: 40px 20px; color: var(--text-2); }
     .empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
     .empty-state p { font-size: 14px; }
 
-    /* ===== HORMIGA LIMIT CARD ===== */
-    .hormiga-limit-card {
-      background: white;
-      border-radius: var(--radius);
-      padding: 16px;
-      box-shadow: var(--shadow);
-      margin-bottom: 12px;
-    }
+    /* ===== HORMIGA ===== */
+    .hormiga-limit-card { background: white; border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); margin-bottom: 12px; }
     .hormiga-limit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     .hormiga-limit-title { font-size: 14px; font-weight: 700; }
     .hormiga-amounts { display: flex; justify-content: space-between; font-size: 13px; }
-    .hormiga-spent { font-weight: 700; }
-    .hormiga-limit { color: var(--text-2); }
 
-    /* ===== SCROLLBAR ===== */
     ::-webkit-scrollbar { width: 0; background: transparent; }
   </style>
 </head>
 <body>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="loader-emoji">💜</div>
+  <div class="loader-title">FinanzasDúo</div>
+  <div class="loader-sub">Cargando...</div>
+  <div class="spinner"></div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-header">
+    <span class="login-emoji">💜</span>
+    <div class="login-title">FinanzasDúo</div>
+    <div class="login-sub">Finanzas personales en pareja</div>
+  </div>
+  <div class="login-card">
+    <div class="login-tabs">
+      <button class="login-tab active" id="tab-login-btn">Iniciar sesión</button>
+      <button class="login-tab" id="tab-register-btn">Registrarse</button>
+    </div>
+    <div class="form-group">
+      <label>Correo electrónico</label>
+      <input type="email" id="auth-email" placeholder="tu@email.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div class="form-group" id="auth-confirm-group" style="display:none">
+      <label>Confirmar contraseña</label>
+      <input type="password" id="auth-confirm" placeholder="••••••••" autocomplete="new-password">
+    </div>
+    <div id="auth-error" class="auth-error" style="display:none"></div>
+    <button class="btn-primary" id="btn-auth">Iniciar sesión</button>
+  </div>
+  <div class="login-footer">Tus datos son privados y solo tú los ves</div>
+</div>
+
+<!-- APP -->
 <div id="app">
   <div class="topbar">
     <h1 id="topbar-title">💜 FinanzasDúo</h1>
-    <div class="month-nav">
-      <button id="prev-month">‹</button>
-      <span id="current-month-label">May 2025</span>
-      <button id="next-month">›</button>
+    <div class="topbar-right">
+      <div class="month-nav">
+        <button id="prev-month">‹</button>
+        <span id="current-month-label"></span>
+        <button id="next-month">›</button>
+      </div>
+      <button class="btn-logout" id="btn-logout" title="Cerrar sesión">🚪</button>
     </div>
   </div>
 
   <div class="pages">
-    <!-- PAGE: RESUMEN -->
+    <div class="month-loading" id="month-loading"><div class="spinner"></div></div>
+
+    <!-- RESUMEN -->
     <div class="page active" id="page-resumen">
       <div class="balance-hero">
         <div class="label">Balance del mes</div>
         <div class="amount" id="balance-amount">$0</div>
-        <div class="sub" id="balance-sub">ingresos - gastos - deudas</div>
+        <div class="sub">ingresos − gastos − deudas del mes</div>
       </div>
       <div class="summary-grid">
-        <div class="summary-card income">
-          <div class="label">💰 Ingresos</div>
-          <div class="value" id="sum-ingresos">$0</div>
-        </div>
-        <div class="summary-card expense">
-          <div class="label">🏠 Obligatorios</div>
-          <div class="value" id="sum-obligatorios">$0</div>
-        </div>
-        <div class="summary-card hormiga">
-          <div class="label">☕ Hormiga</div>
-          <div class="value" id="sum-hormiga">$0</div>
-        </div>
-        <div class="summary-card debt">
-          <div class="label">💳 Deudas</div>
-          <div class="value" id="sum-deudas">$0</div>
-        </div>
+        <div class="summary-card income"><div class="label">💰 Ingresos</div><div class="value" id="sum-ingresos">$0</div></div>
+        <div class="summary-card expense"><div class="label">🏠 Obligatorios</div><div class="value" id="sum-obligatorios">$0</div></div>
+        <div class="summary-card hormiga"><div class="label">☕ Hormiga</div><div class="value" id="sum-hormiga">$0</div></div>
+        <div class="summary-card debt"><div class="label">💳 Deudas pend.</div><div class="value" id="sum-deudas">$0</div></div>
       </div>
       <div id="hormiga-alert-resumen"></div>
       <div id="deudas-alert-resumen"></div>
@@ -511,7 +343,7 @@
       </div>
     </div>
 
-    <!-- PAGE: INGRESOS -->
+    <!-- INGRESOS -->
     <div class="page" id="page-ingresos">
       <div class="section-header">
         <h3>Ingresos del mes</h3>
@@ -520,51 +352,40 @@
       <div id="list-ingresos"></div>
     </div>
 
-    <!-- PAGE: GASTOS -->
+    <!-- GASTOS -->
     <div class="page" id="page-gastos">
       <div class="tabs">
         <button class="tab-btn active" data-tab="obligatorios">🏠 Obligatorios</button>
         <button class="tab-btn" data-tab="hormiga">☕ Hormiga</button>
       </div>
       <div id="tab-obligatorios">
-        <div class="section-header">
-          <h3>Gastos obligatorios</h3>
-          <span class="total-badge" id="total-obligatorios">$0</span>
-        </div>
+        <div class="section-header"><h3>Gastos obligatorios</h3><span class="total-badge" id="total-obligatorios">$0</span></div>
         <div id="list-obligatorios"></div>
       </div>
       <div id="tab-hormiga" style="display:none">
         <div id="hormiga-limit-section"></div>
-        <div class="section-header">
-          <h3>Gastos hormiga</h3>
-          <span class="total-badge" id="total-hormiga">$0</span>
-        </div>
+        <div class="section-header"><h3>Gastos hormiga</h3><span class="total-badge" id="total-hormiga">$0</span></div>
         <div id="list-hormiga"></div>
       </div>
     </div>
 
-    <!-- PAGE: DEUDAS -->
+    <!-- DEUDAS -->
     <div class="page" id="page-deudas">
       <div class="section-header">
         <h3>Deudas activas</h3>
-        <span class="total-badge" id="total-deudas-pendiente">$0 pend.</span>
+        <span class="total-badge" id="total-deudas-pendiente">$0</span>
       </div>
       <div id="list-deudas"></div>
     </div>
 
-    <!-- PAGE: CONFIG -->
+    <!-- CONFIG -->
     <div class="page" id="page-config">
+      <div id="config-user-badge"></div>
       <div class="settings-section">
-        <h3>Usuarios</h3>
+        <h3>Perfil</h3>
         <div class="settings-card">
-          <div class="form-group">
-            <label>Usuario 1</label>
-            <input type="text" id="cfg-user1" placeholder="Nombre del usuario 1">
-          </div>
-          <div class="form-group" style="margin-bottom:0">
-            <label>Usuario 2</label>
-            <input type="text" id="cfg-user2" placeholder="Nombre del usuario 2">
-          </div>
+          <div class="form-group"><label>Tu nombre</label><input type="text" id="cfg-user1" placeholder="Tu nombre"></div>
+          <div class="form-group" style="margin-bottom:0"><label>Nombre de tu pareja</label><input type="text" id="cfg-user2" placeholder="Nombre de tu pareja"></div>
         </div>
       </div>
       <div class="settings-section">
@@ -579,37 +400,18 @@
       <button class="btn-primary" id="btn-save-config" style="margin-bottom:12px">Guardar configuración</button>
       <div class="settings-section">
         <h3>Datos</h3>
-        <button class="btn-outline" id="btn-export">
-          <span>📤</span> Exportar datos (JSON)
-        </button>
-        <button class="btn-outline danger" id="btn-clear-month">
-          <span>🗑️</span> Limpiar datos del mes actual
-        </button>
+        <button class="btn-outline" id="btn-export"><span>📤</span> Exportar datos (JSON)</button>
+        <button class="btn-outline danger" id="btn-clear-month"><span>🗑️</span> Limpiar datos del mes actual</button>
       </div>
     </div>
   </div>
 
   <nav class="bottom-nav">
-    <button class="nav-item active" data-page="resumen">
-      <span class="icon">🏠</span>
-      <span>Resumen</span>
-    </button>
-    <button class="nav-item" data-page="ingresos">
-      <span class="icon">💰</span>
-      <span>Ingresos</span>
-    </button>
-    <button class="nav-item" data-page="gastos">
-      <span class="icon">💸</span>
-      <span>Gastos</span>
-    </button>
-    <button class="nav-item" data-page="deudas">
-      <span class="icon">💳</span>
-      <span>Deudas</span>
-    </button>
-    <button class="nav-item" data-page="config">
-      <span class="icon">⚙️</span>
-      <span>Config</span>
-    </button>
+    <button class="nav-item active" data-page="resumen"><span class="icon">🏠</span><span>Resumen</span></button>
+    <button class="nav-item" data-page="ingresos"><span class="icon">💰</span><span>Ingresos</span></button>
+    <button class="nav-item" data-page="gastos"><span class="icon">💸</span><span>Gastos</span></button>
+    <button class="nav-item" data-page="deudas"><span class="icon">💳</span><span>Deudas</span></button>
+    <button class="nav-item" data-page="config"><span class="icon">⚙️</span><span>Config</span></button>
   </nav>
 </div>
 
@@ -619,29 +421,14 @@
 <!-- MODAL: INGRESO -->
 <div class="modal-overlay" id="modal-ingreso">
   <div class="modal">
-    <div class="modal-handle"></div>
-    <h2>Nuevo ingreso</h2>
-    <div class="form-group">
-      <label>Descripción</label>
-      <input type="text" id="ing-nombre" placeholder="Ej: Salario enero">
-    </div>
+    <div class="modal-handle"></div><h2>Nuevo ingreso</h2>
+    <div class="form-group"><label>Descripción</label><input type="text" id="ing-nombre" placeholder="Ej: Salario enero"></div>
     <div class="form-row">
-      <div class="form-group">
-        <label>Monto</label>
-        <input type="number" id="ing-monto" placeholder="0" min="0">
-      </div>
-      <div class="form-group">
-        <label>Fecha</label>
-        <input type="date" id="ing-fecha">
-      </div>
+      <div class="form-group"><label>Monto</label><input type="number" id="ing-monto" placeholder="0" min="0"></div>
+      <div class="form-group"><label>Fecha</label><input type="date" id="ing-fecha"></div>
     </div>
-    <div class="form-group">
-      <label>Categoría</label>
-      <select id="ing-categoria">
-        <option value="salario">💼 Salario</option>
-        <option value="freelance">💻 Freelance</option>
-        <option value="otro">✨ Otro</option>
-      </select>
+    <div class="form-group"><label>Categoría</label>
+      <select id="ing-categoria"><option value="salario">💼 Salario</option><option value="freelance">💻 Freelance</option><option value="otro">✨ Otro</option></select>
     </div>
     <button class="btn-primary" id="btn-save-ingreso">Guardar ingreso</button>
     <button class="btn-secondary modal-close" data-modal="modal-ingreso">Cancelar</button>
@@ -651,31 +438,17 @@
 <!-- MODAL: GASTO OBLIGATORIO -->
 <div class="modal-overlay" id="modal-obligatorio">
   <div class="modal">
-    <div class="modal-handle"></div>
-    <h2>Gasto obligatorio</h2>
-    <div class="form-group">
-      <label>Descripción</label>
-      <input type="text" id="ob-nombre" placeholder="Ej: Arriendo">
-    </div>
+    <div class="modal-handle"></div><h2>Gasto obligatorio</h2>
+    <div class="form-group"><label>Descripción</label><input type="text" id="ob-nombre" placeholder="Ej: Arriendo"></div>
     <div class="form-row">
-      <div class="form-group">
-        <label>Monto</label>
-        <input type="number" id="ob-monto" placeholder="0" min="0">
-      </div>
-      <div class="form-group">
-        <label>Fecha</label>
-        <input type="date" id="ob-fecha">
-      </div>
+      <div class="form-group"><label>Monto</label><input type="number" id="ob-monto" placeholder="0" min="0"></div>
+      <div class="form-group"><label>Fecha</label><input type="date" id="ob-fecha"></div>
     </div>
-    <div class="form-group">
-      <label>Categoría</label>
+    <div class="form-group"><label>Categoría</label>
       <select id="ob-categoria">
-        <option value="arriendo">🏠 Arriendo</option>
-        <option value="servicios">💡 Servicios</option>
-        <option value="mascota">🐾 Mascota</option>
-        <option value="transporte">🚌 Transporte</option>
-        <option value="salud">🏥 Salud</option>
-        <option value="otro">📦 Otro</option>
+        <option value="arriendo">🏠 Arriendo</option><option value="servicios">💡 Servicios</option>
+        <option value="mascota">🐾 Mascota</option><option value="transporte">🚌 Transporte</option>
+        <option value="salud">🏥 Salud</option><option value="otro">📦 Otro</option>
       </select>
     </div>
     <button class="btn-primary" id="btn-save-obligatorio">Guardar gasto</button>
@@ -686,16 +459,9 @@
 <!-- MODAL: GASTO HORMIGA -->
 <div class="modal-overlay" id="modal-hormiga">
   <div class="modal">
-    <div class="modal-handle"></div>
-    <h2>Gasto hormiga</h2>
-    <div class="form-group">
-      <label>Descripción</label>
-      <input type="text" id="ho-descripcion" placeholder="Ej: Café + empanada">
-    </div>
-    <div class="form-group">
-      <label>Monto</label>
-      <input type="number" id="ho-monto" placeholder="0" min="0">
-    </div>
+    <div class="modal-handle"></div><h2>Gasto hormiga</h2>
+    <div class="form-group"><label>Descripción</label><input type="text" id="ho-descripcion" placeholder="Ej: Café + empanada"></div>
+    <div class="form-group"><label>Monto</label><input type="number" id="ho-monto" placeholder="0" min="0"></div>
     <button class="btn-primary" id="btn-save-hormiga">Guardar gasto</button>
     <button class="btn-secondary modal-close" data-modal="modal-hormiga">Cancelar</button>
   </div>
@@ -704,39 +470,20 @@
 <!-- MODAL: DEUDA -->
 <div class="modal-overlay" id="modal-deuda">
   <div class="modal">
-    <div class="modal-handle"></div>
-    <h2>Nueva deuda</h2>
-    <div class="form-group">
-      <label>Nombre / descripción</label>
-      <input type="text" id="deu-nombre" placeholder="Ej: Tarjeta VISA">
+    <div class="modal-handle"></div><h2>Nueva deuda</h2>
+    <div class="form-group"><label>Nombre / descripción</label><input type="text" id="deu-nombre" placeholder="Ej: Tarjeta VISA"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Monto total</label><input type="number" id="deu-monto" placeholder="0" min="0"></div>
+      <div class="form-group"><label>Cuotas totales</label><input type="number" id="deu-cuotas-total" placeholder="12" min="1"></div>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label>Monto total</label>
-        <input type="number" id="deu-monto" placeholder="0" min="0">
-      </div>
-      <div class="form-group">
-        <label>Cuotas totales</label>
-        <input type="number" id="deu-cuotas-total" placeholder="12" min="1">
-      </div>
+      <div class="form-group"><label>Cuotas pagadas</label><input type="number" id="deu-cuotas-pagadas" placeholder="0" min="0"></div>
+      <div class="form-group"><label>Próximo pago</label><input type="date" id="deu-fecha-pago"></div>
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>Cuotas pagadas</label>
-        <input type="number" id="deu-cuotas-pagadas" placeholder="0" min="0">
-      </div>
-      <div class="form-group">
-        <label>Próximo pago</label>
-        <input type="date" id="deu-fecha-pago">
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Categoría</label>
+    <div class="form-group"><label>Categoría</label>
       <select id="deu-categoria">
-        <option value="tarjeta">💳 Tarjeta crédito</option>
-        <option value="prestamo">🏦 Préstamo</option>
-        <option value="familiar">👨‍👩‍👧 Familiar</option>
-        <option value="otro">📦 Otro</option>
+        <option value="tarjeta">💳 Tarjeta crédito</option><option value="prestamo">🏦 Préstamo</option>
+        <option value="familiar">👨‍👩‍👧 Familiar</option><option value="otro">📦 Otro</option>
       </select>
     </div>
     <button class="btn-primary" id="btn-save-deuda">Guardar deuda</button>
@@ -747,62 +494,54 @@
 <!-- MODAL: LÍMITE HORMIGA -->
 <div class="modal-overlay" id="modal-limite-hormiga">
   <div class="modal">
-    <div class="modal-handle"></div>
-    <h2>Límite gastos hormiga</h2>
-    <div class="form-group">
-      <label>Límite mensual</label>
-      <input type="number" id="lim-monto" placeholder="Ej: 200000" min="0">
-    </div>
+    <div class="modal-handle"></div><h2>Límite gastos hormiga</h2>
+    <div class="form-group"><label>Límite mensual</label><input type="number" id="lim-monto" placeholder="Ej: 200000" min="0"></div>
     <button class="btn-primary" id="btn-save-limite">Guardar límite</button>
     <button class="btn-secondary modal-close" data-modal="modal-limite-hormiga">Cancelar</button>
   </div>
 </div>
 
-<script>
-// ===== STATE =====
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ===== FIREBASE INIT =====
+const firebaseConfig = {
+  apiKey: "AIzaSyBGLplnfjLGKo9RyPRWQmmGSqebkmyxu_8",
+  authDomain: "finanzas-app-e1b50.firebaseapp.com",
+  projectId: "finanzas-app-e1b50",
+  storageBucket: "finanzas-app-e1b50.firebasestorage.app",
+  messagingSenderId: "621035634291",
+  appId: "1:621035634291:web:3260186eb7928d82217406"
+};
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
+
+// ===== LOCAL CACHE =====
+// Mirrors Firestore data locally for instant UI updates
+let cache = {
+  settings: { user1: '', user2: '', hormigaLimit: 0 },
+  months: {},   // { 'YYYY-MM': { ingresos:[], obligatorios:[], hormiga:[] } }
+  deudas: []
+};
+let currentUser = null;
+
+// ===== HELPERS =====
 let currentDate = new Date();
 let activeTab = 'obligatorios';
 let activePage = 'resumen';
 
-// ===== HELPERS =====
-function getMonthKey(d) {
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-}
-function getMonthLabel(d) {
-  return d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-}
-function fmt(n) {
-  if (n === null || n === undefined || isNaN(n)) return '$0';
-  return '$' + Math.round(n).toLocaleString('es-CO');
-}
-function today() {
-  return new Date().toISOString().split('T')[0];
-}
-function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2,6);
-}
-function daysBetween(d1, d2) {
-  return Math.ceil((new Date(d1) - new Date(d2)) / 86400000);
-}
-
-// ===== STORAGE =====
-function getSettings() {
-  return JSON.parse(localStorage.getItem('finanzas_settings') || '{"user1":"","user2":"","hormigaLimit":0}');
-}
-function saveSettings(s) {
-  localStorage.setItem('finanzas_settings', JSON.stringify(s));
-}
-function getMonthData(key) {
-  return JSON.parse(localStorage.getItem('finanzas_' + key) || '{"ingresos":[],"obligatorios":[],"hormiga":[]}');
-}
-function saveMonthData(key, data) {
-  localStorage.setItem('finanzas_' + key, JSON.stringify(data));
-}
-function getDeudas() {
-  return JSON.parse(localStorage.getItem('finanzas_deudas') || '[]');
-}
-function saveDeudas(d) {
-  localStorage.setItem('finanzas_deudas', JSON.stringify(d));
+function getMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function getMonthLabel(d) { return d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }); }
+function fmt(n) { return '$' + Math.round(n||0).toLocaleString('es-CO'); }
+function today() { return new Date().toISOString().split('T')[0]; }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function daysBetween(d1, d2) { return Math.ceil((new Date(d1) - new Date(d2)) / 86400000); }
+function formatDate(str) {
+  if (!str) return '';
+  return new Date(str + 'T12:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
 }
 
 // ===== TOAST =====
@@ -815,21 +554,180 @@ function showToast(msg, dur = 2200) {
   toastTimer = setTimeout(() => el.classList.remove('show'), dur);
 }
 
-// ===== MODALS =====
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
+// ===== SCREENS =====
+function showLoading() {
+  document.getElementById('loading-screen').style.display = 'flex';
+  document.getElementById('login-screen').classList.remove('visible');
+  document.getElementById('app').classList.remove('visible');
 }
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
+function showLogin() {
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('login-screen').classList.add('visible');
+  document.getElementById('app').classList.remove('visible');
 }
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => {
-    if (e.target === overlay) overlay.classList.remove('open');
+function showApp() {
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('login-screen').classList.remove('visible');
+  document.getElementById('app').classList.add('visible');
+}
+function showMonthLoading(v) {
+  document.getElementById('month-loading').classList.toggle('visible', v);
+}
+
+// ===== FIRESTORE PATHS =====
+function userDoc() { return doc(db, 'users', currentUser.uid); }
+function settingsDoc() { return doc(db, 'users', currentUser.uid, 'data', 'settings'); }
+function deudasDoc() { return doc(db, 'users', currentUser.uid, 'data', 'deudas'); }
+function monthDoc(key) { return doc(db, 'users', currentUser.uid, 'months', key); }
+
+// ===== FIRESTORE LOAD =====
+async function loadAllData() {
+  const [settSnap, deuSnap] = await Promise.all([getDoc(settingsDoc()), getDoc(deudasDoc())]);
+  if (settSnap.exists()) cache.settings = settSnap.data();
+  if (deuSnap.exists()) cache.deudas = deuSnap.data().list || [];
+  await loadMonthData(getMonthKey(currentDate));
+}
+
+async function loadMonthData(key) {
+  if (cache.months[key]) return;
+  const snap = await getDoc(monthDoc(key));
+  cache.months[key] = snap.exists() ? snap.data() : { ingresos: [], obligatorios: [], hormiga: [] };
+}
+
+// ===== FIRESTORE SAVE (fire-and-forget) =====
+function persistMonth(key) {
+  setDoc(monthDoc(key), cache.months[key]).catch(() => showToast('⚠️ Error al sincronizar'));
+}
+function persistSettings() {
+  setDoc(settingsDoc(), cache.settings).catch(() => showToast('⚠️ Error al sincronizar'));
+}
+function persistDeudas() {
+  setDoc(deudasDoc(), { list: cache.deudas }).catch(() => showToast('⚠️ Error al sincronizar'));
+}
+
+// ===== CACHE ACCESSORS (sync, like old localStorage getters) =====
+function getSettings() { return cache.settings; }
+function getMonthData(key) {
+  if (!cache.months[key]) cache.months[key] = { ingresos: [], obligatorios: [], hormiga: [] };
+  return cache.months[key];
+}
+function getDeudas() { return cache.deudas; }
+
+// ===== AUTH =====
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    currentUser = user;
+    showLoading();
+    try {
+      await loadAllData();
+      updateMonthLabel();
+      renderAll();
+      showApp();
+    } catch (e) {
+      showToast('⚠️ Error al cargar datos');
+      showApp();
+    }
+  } else {
+    currentUser = null;
+    cache = { settings: { user1:'', user2:'', hormigaLimit:0 }, months:{}, deudas:[] };
+    showLogin();
+  }
+});
+
+// ===== LOGIN UI =====
+let isRegisterMode = false;
+
+document.getElementById('tab-login-btn').addEventListener('click', () => {
+  isRegisterMode = false;
+  document.getElementById('tab-login-btn').classList.add('active');
+  document.getElementById('tab-register-btn').classList.remove('active');
+  document.getElementById('auth-confirm-group').style.display = 'none';
+  document.getElementById('btn-auth').textContent = 'Iniciar sesión';
+  document.getElementById('auth-error').style.display = 'none';
+});
+
+document.getElementById('tab-register-btn').addEventListener('click', () => {
+  isRegisterMode = true;
+  document.getElementById('tab-register-btn').classList.add('active');
+  document.getElementById('tab-login-btn').classList.remove('active');
+  document.getElementById('auth-confirm-group').style.display = 'block';
+  document.getElementById('btn-auth').textContent = 'Crear cuenta';
+  document.getElementById('auth-error').style.display = 'none';
+});
+
+document.getElementById('btn-auth').addEventListener('click', async () => {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const confirm = document.getElementById('auth-confirm').value;
+  const errEl = document.getElementById('auth-error');
+  errEl.style.display = 'none';
+
+  if (!email || !password) { errEl.textContent = 'Completa todos los campos.'; errEl.style.display = 'block'; return; }
+  if (isRegisterMode && password !== confirm) { errEl.textContent = 'Las contraseñas no coinciden.'; errEl.style.display = 'block'; return; }
+  if (isRegisterMode && password.length < 6) { errEl.textContent = 'La contraseña debe tener al menos 6 caracteres.'; errEl.style.display = 'block'; return; }
+
+  document.getElementById('btn-auth').textContent = '...';
+  document.getElementById('btn-auth').disabled = true;
+  try {
+    if (isRegisterMode) {
+      await createUserWithEmailAndPassword(auth, email, password);
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+    }
+  } catch (e) {
+    const msgs = {
+      'auth/user-not-found': 'Correo no registrado.',
+      'auth/wrong-password': 'Contraseña incorrecta.',
+      'auth/invalid-credential': 'Correo o contraseña incorrectos.',
+      'auth/email-already-in-use': 'Este correo ya tiene una cuenta.',
+      'auth/invalid-email': 'Correo inválido.',
+      'auth/too-many-requests': 'Demasiados intentos. Intenta más tarde.'
+    };
+    errEl.textContent = msgs[e.code] || 'Error: ' + e.message;
+    errEl.style.display = 'block';
+    document.getElementById('btn-auth').textContent = isRegisterMode ? 'Crear cuenta' : 'Iniciar sesión';
+    document.getElementById('btn-auth').disabled = false;
+  }
+});
+
+// Allow Enter key on auth inputs
+['auth-email','auth-password','auth-confirm'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('btn-auth').click();
   });
 });
-document.querySelectorAll('.modal-close').forEach(btn => {
-  btn.addEventListener('click', () => closeModal(btn.dataset.modal));
+
+document.getElementById('btn-logout').addEventListener('click', async () => {
+  if (!confirm('¿Cerrar sesión?')) return;
+  await signOut(auth);
 });
+
+// ===== MONTH NAV =====
+document.getElementById('prev-month').addEventListener('click', async () => {
+  currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth()-1, 1);
+  updateMonthLabel();
+  const key = getMonthKey(currentDate);
+  if (!cache.months[key]) {
+    showMonthLoading(true);
+    await loadMonthData(key);
+    showMonthLoading(false);
+  }
+  renderAll();
+});
+document.getElementById('next-month').addEventListener('click', async () => {
+  currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth()+1, 1);
+  updateMonthLabel();
+  const key = getMonthKey(currentDate);
+  if (!cache.months[key]) {
+    showMonthLoading(true);
+    await loadMonthData(key);
+    showMonthLoading(false);
+  }
+  renderAll();
+});
+function updateMonthLabel() {
+  document.getElementById('current-month-label').textContent = getMonthLabel(currentDate);
+}
 
 // ===== NAVIGATION =====
 document.querySelectorAll('.nav-item').forEach(btn => {
@@ -843,22 +741,7 @@ document.querySelectorAll('.nav-item').forEach(btn => {
   });
 });
 
-// Month nav
-document.getElementById('prev-month').addEventListener('click', () => {
-  currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-  updateMonthLabel();
-  renderAll();
-});
-document.getElementById('next-month').addEventListener('click', () => {
-  currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1);
-  updateMonthLabel();
-  renderAll();
-});
-function updateMonthLabel() {
-  document.getElementById('current-month-label').textContent = getMonthLabel(currentDate);
-}
-
-// ===== TABS (GASTOS) =====
+// ===== TABS =====
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     activeTab = btn.dataset.tab;
@@ -870,39 +753,32 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
+// ===== MODALS =====
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+window.openModal = openModal;
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+document.querySelectorAll('.modal-close').forEach(btn => {
+  btn.addEventListener('click', () => closeModal(btn.dataset.modal));
+});
+
 // ===== FAB =====
 document.getElementById('fab').addEventListener('click', () => {
-  if (activePage === 'ingresos') {
+  if (activePage === 'ingresos' || activePage === 'resumen') {
     document.getElementById('ing-fecha').value = today();
     openModal('modal-ingreso');
   } else if (activePage === 'gastos') {
-    if (activeTab === 'obligatorios') {
-      document.getElementById('ob-fecha').value = today();
-      openModal('modal-obligatorio');
-    } else {
-      openModal('modal-hormiga');
-    }
+    if (activeTab === 'obligatorios') { document.getElementById('ob-fecha').value = today(); openModal('modal-obligatorio'); }
+    else openModal('modal-hormiga');
   } else if (activePage === 'deudas') {
     document.getElementById('deu-fecha-pago').value = today();
     document.getElementById('deu-cuotas-pagadas').value = '0';
     openModal('modal-deuda');
-  } else if (activePage === 'resumen') {
-    document.getElementById('ing-fecha').value = today();
-    openModal('modal-ingreso');
   }
 });
-
-// ===== CATEGORY ICONS =====
-const catIcons = {
-  salario: '💼', freelance: '💻', otro: '✨',
-  arriendo: '🏠', servicios: '💡', mascota: '🐾', transporte: '🚌', salud: '🏥',
-  tarjeta: '💳', prestamo: '🏦', familiar: '👨‍👩‍👧'
-};
-const catColors = {
-  salario: '#EEF0FF', freelance: '#D1FAE5', otro: '#FEE2E2',
-  arriendo: '#FEE2E2', servicios: '#FEF3C7', mascota: '#FCE7F3', transporte: '#DBEAFE', salud: '#D1FAE5',
-  tarjeta: '#DBEAFE', prestamo: '#FEF3C7', familiar: '#FCE7F3'
-};
 
 // ===== SAVE ACTIONS =====
 document.getElementById('btn-save-ingreso').addEventListener('click', () => {
@@ -912,9 +788,8 @@ document.getElementById('btn-save-ingreso').addEventListener('click', () => {
   const categoria = document.getElementById('ing-categoria').value;
   if (!nombre || !monto || !fecha) { showToast('⚠️ Completa todos los campos'); return; }
   const key = getMonthKey(currentDate);
-  const data = getMonthData(key);
-  data.ingresos.push({ id: uid(), nombre, monto, fecha, categoria });
-  saveMonthData(key, data);
+  getMonthData(key).ingresos.push({ id: uid(), nombre, monto, fecha, categoria });
+  persistMonth(key);
   closeModal('modal-ingreso');
   document.getElementById('ing-nombre').value = '';
   document.getElementById('ing-monto').value = '';
@@ -929,9 +804,8 @@ document.getElementById('btn-save-obligatorio').addEventListener('click', () => 
   const categoria = document.getElementById('ob-categoria').value;
   if (!nombre || !monto || !fecha) { showToast('⚠️ Completa todos los campos'); return; }
   const key = getMonthKey(currentDate);
-  const data = getMonthData(key);
-  data.obligatorios.push({ id: uid(), nombre, monto, fecha, categoria });
-  saveMonthData(key, data);
+  getMonthData(key).obligatorios.push({ id: uid(), nombre, monto, fecha, categoria });
+  persistMonth(key);
   closeModal('modal-obligatorio');
   document.getElementById('ob-nombre').value = '';
   document.getElementById('ob-monto').value = '';
@@ -944,9 +818,8 @@ document.getElementById('btn-save-hormiga').addEventListener('click', () => {
   const monto = parseFloat(document.getElementById('ho-monto').value);
   if (!descripcion || !monto) { showToast('⚠️ Completa todos los campos'); return; }
   const key = getMonthKey(currentDate);
-  const data = getMonthData(key);
-  data.hormiga.push({ id: uid(), descripcion, monto, fecha: today() });
-  saveMonthData(key, data);
+  getMonthData(key).hormiga.push({ id: uid(), descripcion, monto, fecha: today() });
+  persistMonth(key);
   closeModal('modal-hormiga');
   document.getElementById('ho-descripcion').value = '';
   document.getElementById('ho-monto').value = '';
@@ -962,10 +835,9 @@ document.getElementById('btn-save-deuda').addEventListener('click', () => {
   const fechaProximoPago = document.getElementById('deu-fecha-pago').value;
   const categoria = document.getElementById('deu-categoria').value;
   if (!nombre || !montoTotal || !cuotasTotales) { showToast('⚠️ Completa todos los campos'); return; }
-  if (cuotasPagadas > cuotasTotales) { showToast('⚠️ Cuotas pagadas no pueden superar las totales'); return; }
-  const deudas = getDeudas();
-  deudas.push({ id: uid(), nombre, montoTotal, cuotasTotales, cuotasPagadas, fechaProximoPago, categoria });
-  saveDeudas(deudas);
+  if (cuotasPagadas > cuotasTotales) { showToast('⚠️ Cuotas pagadas > totales'); return; }
+  cache.deudas.push({ id: uid(), nombre, montoTotal, cuotasTotales, cuotasPagadas, fechaProximoPago, categoria });
+  persistDeudas();
   closeModal('modal-deuda');
   document.getElementById('deu-nombre').value = '';
   document.getElementById('deu-monto').value = '';
@@ -977,10 +849,9 @@ document.getElementById('btn-save-deuda').addEventListener('click', () => {
 
 document.getElementById('btn-save-limite').addEventListener('click', () => {
   const lim = parseFloat(document.getElementById('lim-monto').value);
-  if (!lim || lim < 0) { showToast('⚠️ Ingresa un límite válido'); return; }
-  const s = getSettings();
-  s.hormigaLimit = lim;
-  saveSettings(s);
+  if (!lim || lim < 0) { showToast('⚠️ Límite inválido'); return; }
+  cache.settings.hormigaLimit = lim;
+  persistSettings();
   closeModal('modal-limite-hormiga');
   showToast('✅ Límite guardado');
   renderAll();
@@ -988,23 +859,17 @@ document.getElementById('btn-save-limite').addEventListener('click', () => {
 
 // ===== CONFIG =====
 document.getElementById('btn-save-config').addEventListener('click', () => {
-  const s = getSettings();
-  s.user1 = document.getElementById('cfg-user1').value.trim();
-  s.user2 = document.getElementById('cfg-user2').value.trim();
+  cache.settings.user1 = document.getElementById('cfg-user1').value.trim();
+  cache.settings.user2 = document.getElementById('cfg-user2').value.trim();
   const lim = parseFloat(document.getElementById('cfg-hormiga-limit').value);
-  if (!isNaN(lim)) s.hormigaLimit = lim;
-  saveSettings(s);
+  if (!isNaN(lim)) cache.settings.hormigaLimit = lim;
+  persistSettings();
   showToast('✅ Configuración guardada');
   renderAll();
 });
 
 document.getElementById('btn-export').addEventListener('click', () => {
-  const allData = {};
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    allData[k] = JSON.parse(localStorage.getItem(k));
-  }
-  const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify({ settings: cache.settings, months: cache.months, deudas: cache.deudas }, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'finanzas-duo-' + today() + '.json';
@@ -1012,332 +877,182 @@ document.getElementById('btn-export').addEventListener('click', () => {
   showToast('📤 Datos exportados');
 });
 
-document.getElementById('btn-clear-month').addEventListener('click', () => {
-  if (!confirm(`¿Limpiar todos los datos de ${getMonthLabel(currentDate)}? Esta acción no se puede deshacer.`)) return;
+document.getElementById('btn-clear-month').addEventListener('click', async () => {
+  if (!confirm(`¿Limpiar datos de ${getMonthLabel(currentDate)}?`)) return;
   const key = getMonthKey(currentDate);
-  localStorage.removeItem('finanzas_' + key);
+  cache.months[key] = { ingresos: [], obligatorios: [], hormiga: [] };
+  await setDoc(monthDoc(key), cache.months[key]);
   showToast('🗑️ Datos del mes eliminados');
   renderAll();
 });
 
-// ===== DELETE ACTIONS =====
-function deleteIngreso(id) {
+// ===== DELETE =====
+window.deleteIngreso = (id) => {
   const key = getMonthKey(currentDate);
-  const data = getMonthData(key);
-  data.ingresos = data.ingresos.filter(x => x.id !== id);
-  saveMonthData(key, data);
-  showToast('🗑️ Eliminado');
-  renderAll();
-}
-function deleteObligatorio(id) {
+  getMonthData(key).ingresos = getMonthData(key).ingresos.filter(x => x.id !== id);
+  persistMonth(key); showToast('🗑️ Eliminado'); renderAll();
+};
+window.deleteObligatorio = (id) => {
   const key = getMonthKey(currentDate);
-  const data = getMonthData(key);
-  data.obligatorios = data.obligatorios.filter(x => x.id !== id);
-  saveMonthData(key, data);
-  showToast('🗑️ Eliminado');
-  renderAll();
-}
-function deleteHormiga(id) {
+  getMonthData(key).obligatorios = getMonthData(key).obligatorios.filter(x => x.id !== id);
+  persistMonth(key); showToast('🗑️ Eliminado'); renderAll();
+};
+window.deleteHormiga = (id) => {
   const key = getMonthKey(currentDate);
-  const data = getMonthData(key);
-  data.hormiga = data.hormiga.filter(x => x.id !== id);
-  saveMonthData(key, data);
-  showToast('🗑️ Eliminado');
-  renderAll();
-}
-function deleteDeuda(id) {
+  getMonthData(key).hormiga = getMonthData(key).hormiga.filter(x => x.id !== id);
+  persistMonth(key); showToast('🗑️ Eliminado'); renderAll();
+};
+window.deleteDeuda = (id) => {
   if (!confirm('¿Eliminar esta deuda?')) return;
-  saveDeudas(getDeudas().filter(d => d.id !== id));
-  showToast('🗑️ Deuda eliminada');
-  renderAll();
-}
-function pagarCuota(id) {
-  const deudas = getDeudas();
-  const d = deudas.find(x => x.id === id);
-  if (!d) return;
-  if (d.cuotasPagadas >= d.cuotasTotales) return;
+  cache.deudas = cache.deudas.filter(d => d.id !== id);
+  persistDeudas(); showToast('🗑️ Deuda eliminada'); renderAll();
+};
+window.pagarCuota = (id) => {
+  const d = cache.deudas.find(x => x.id === id);
+  if (!d || d.cuotasPagadas >= d.cuotasTotales) return;
   d.cuotasPagadas++;
-  saveDeudas(deudas);
-  showToast('✅ Cuota marcada como pagada');
-  renderAll();
-}
+  persistDeudas(); showToast('✅ Cuota marcada como pagada'); renderAll();
+};
 
-// ===== RENDER: RESUMEN =====
+// ===== CATEGORY MAPS =====
+const catIcons = { salario:'💼', freelance:'💻', otro:'✨', arriendo:'🏠', servicios:'💡', mascota:'🐾', transporte:'🚌', salud:'🏥', tarjeta:'💳', prestamo:'🏦', familiar:'👨‍👩‍👧' };
+const catColors = { salario:'#EEF0FF', freelance:'#D1FAE5', otro:'#FEE2E2', arriendo:'#FEE2E2', servicios:'#FEF3C7', mascota:'#FCE7F3', transporte:'#DBEAFE', salud:'#D1FAE5', tarjeta:'#DBEAFE', prestamo:'#FEF3C7', familiar:'#FCE7F3' };
+
+// ===== RENDER FUNCTIONS =====
 function renderResumen() {
   const key = getMonthKey(currentDate);
   const data = getMonthData(key);
-  const settings = getSettings();
+  const s = getSettings();
   const deudas = getDeudas();
 
-  const totalIngresos = data.ingresos.reduce((a, x) => a + x.monto, 0);
-  const totalObligatorios = data.obligatorios.reduce((a, x) => a + x.monto, 0);
-  const totalHormiga = data.hormiga.reduce((a, x) => a + x.monto, 0);
-  const totalDeudaPendiente = deudas.reduce((a, d) => {
-    const cuotaValor = d.montoTotal / d.cuotasTotales;
-    const restantes = d.cuotasTotales - d.cuotasPagadas;
-    return a + cuotaValor * restantes;
+  const totalIngresos = data.ingresos.reduce((a,x) => a+x.monto, 0);
+  const totalObl = data.obligatorios.reduce((a,x) => a+x.monto, 0);
+  const totalHorm = data.hormiga.reduce((a,x) => a+x.monto, 0);
+  const totalDeudaPend = deudas.reduce((a,d) => {
+    return a + (d.montoTotal/d.cuotasTotales) * (d.cuotasTotales - d.cuotasPagadas);
   }, 0);
-
-  const balance = totalIngresos - totalObligatorios - totalHormiga;
+  const balance = totalIngresos - totalObl - totalHorm;
 
   document.getElementById('balance-amount').textContent = fmt(balance);
   document.getElementById('balance-amount').style.color = balance >= 0 ? 'white' : '#FFD6D6';
   document.getElementById('sum-ingresos').textContent = fmt(totalIngresos);
-  document.getElementById('sum-obligatorios').textContent = fmt(totalObligatorios);
-  document.getElementById('sum-hormiga').textContent = fmt(totalHormiga);
-  document.getElementById('sum-deudas').textContent = fmt(totalDeudaPendiente);
+  document.getElementById('sum-obligatorios').textContent = fmt(totalObl);
+  document.getElementById('sum-hormiga').textContent = fmt(totalHorm);
+  document.getElementById('sum-deudas').textContent = fmt(totalDeudaPend);
 
-  // Hormiga alert
-  const alertHormiga = document.getElementById('hormiga-alert-resumen');
-  const limit = settings.hormigaLimit;
+  const limit = s.hormigaLimit;
+  const alertHorm = document.getElementById('hormiga-alert-resumen');
   if (limit > 0) {
-    const pct = totalHormiga / limit;
-    if (pct >= 1) {
-      alertHormiga.innerHTML = `<div class="alert danger">🚨 ¡Superaste tu límite de gastos hormiga! (${Math.round(pct*100)}%)</div>`;
-    } else if (pct >= 0.8) {
-      alertHormiga.innerHTML = `<div class="alert warning">⚠️ Vas por el ${Math.round(pct*100)}% de tu límite de gastos hormiga</div>`;
-    } else {
-      alertHormiga.innerHTML = '';
-    }
-  } else {
-    alertHormiga.innerHTML = '';
-  }
+    const pct = totalHorm / limit;
+    if (pct >= 1) alertHorm.innerHTML = `<div class="alert danger">🚨 ¡Superaste tu límite de gastos hormiga! (${Math.round(pct*100)}%)</div>`;
+    else if (pct >= 0.8) alertHorm.innerHTML = `<div class="alert warning">⚠️ Vas por el ${Math.round(pct*100)}% de tu límite hormiga</div>`;
+    else alertHorm.innerHTML = '';
+  } else alertHorm.innerHTML = '';
 
-  // Deuda alert
-  const alertDeudas = document.getElementById('deudas-alert-resumen');
   const hoy = today();
   const proximas = deudas.filter(d => {
     if (!d.fechaProximoPago || d.cuotasPagadas >= d.cuotasTotales) return false;
     const diff = daysBetween(d.fechaProximoPago, hoy);
     return diff >= 0 && diff <= 3;
   });
-  if (proximas.length) {
-    alertDeudas.innerHTML = `<div class="alert warning">⏰ ${proximas.length === 1 ? `Deuda próxima: "${proximas[0].nombre}"` : `${proximas.length} deudas vencen en los próximos 3 días`}</div>`;
-  } else {
-    alertDeudas.innerHTML = '';
-  }
+  document.getElementById('deudas-alert-resumen').innerHTML = proximas.length
+    ? `<div class="alert warning">⏰ ${proximas.length === 1 ? `Pago próximo: "${proximas[0].nombre}"` : `${proximas.length} deudas vencen en ≤3 días`}</div>`
+    : '';
 
-  // Progress hormiga en resumen
-  const progressEl = document.getElementById('resumen-hormiga-progress');
+  const progEl = document.getElementById('resumen-hormiga-progress');
   if (limit > 0) {
-    const pct = Math.min(totalHormiga / limit, 1);
-    const pctShow = Math.round((totalHormiga / limit) * 100);
-    const color = pctShow >= 100 ? 'red' : pctShow >= 70 ? 'yellow' : 'green';
-    progressEl.innerHTML = `
-      <div class="progress-wrap">
-        <div class="progress-bar"><div class="progress-fill ${color}" style="width:${pct*100}%"></div></div>
-        <div class="progress-label"><span class="hormiga-spent">${fmt(totalHormiga)}</span><span class="hormiga-limit">Límite: ${fmt(limit)}</span></div>
-      </div>`;
+    const pct = Math.min(totalHorm/limit, 1);
+    const pNum = Math.round((totalHorm/limit)*100);
+    const color = pNum >= 100 ? 'red' : pNum >= 70 ? 'yellow' : 'green';
+    progEl.innerHTML = `<div class="progress-wrap"><div class="progress-bar"><div class="progress-fill ${color}" style="width:${pct*100}%"></div></div><div class="progress-label"><span>${fmt(totalHorm)}</span><span>Límite: ${fmt(limit)}</span></div></div>`;
   } else {
-    progressEl.innerHTML = `<div style="color:var(--text-2);font-size:13px;">Sin límite configurado. <button onclick="openModal('modal-limite-hormiga')" style="color:var(--primary);font-weight:600;background:none;border:none;cursor:pointer;">Configurar</button></div>`;
+    progEl.innerHTML = `<div style="color:var(--text-2);font-size:13px">Sin límite configurado. <button onclick="openModal('modal-limite-hormiga')" style="color:var(--primary);font-weight:600;background:none;border:none;cursor:pointer">Configurar →</button></div>`;
   }
 }
 
-// ===== RENDER: INGRESOS =====
 function renderIngresos() {
-  const key = getMonthKey(currentDate);
-  const data = getMonthData(key);
+  const data = getMonthData(getMonthKey(currentDate));
   const items = [...data.ingresos].sort((a,b) => b.fecha.localeCompare(a.fecha));
-  const total = items.reduce((a, x) => a + x.monto, 0);
-  document.getElementById('total-ingresos').textContent = fmt(total);
-  const el = document.getElementById('list-ingresos');
-  if (!items.length) {
-    el.innerHTML = `<div class="empty-state"><div class="emoji">💰</div><p>Sin ingresos este mes.<br>Toca + para agregar uno.</p></div>`;
-    return;
-  }
-  el.innerHTML = items.map(x => `
-    <div class="list-item">
-      <div class="item-icon" style="background:${catColors[x.categoria]||'#EEF0FF'}">${catIcons[x.categoria]||'✨'}</div>
-      <div class="item-info">
-        <div class="item-name">${x.nombre}</div>
-        <div class="item-meta">${x.categoria} · ${formatDate(x.fecha)}</div>
-      </div>
-      <div class="item-amount income">${fmt(x.monto)}</div>
-      <div class="item-actions">
-        <button class="btn-icon delete" onclick="deleteIngreso('${x.id}')">🗑</button>
-      </div>
-    </div>`).join('');
+  document.getElementById('total-ingresos').textContent = fmt(items.reduce((a,x)=>a+x.monto,0));
+  document.getElementById('list-ingresos').innerHTML = items.length
+    ? items.map(x => `<div class="list-item"><div class="item-icon" style="background:${catColors[x.categoria]||'#EEF0FF'}">${catIcons[x.categoria]||'✨'}</div><div class="item-info"><div class="item-name">${x.nombre}</div><div class="item-meta">${x.categoria} · ${formatDate(x.fecha)}</div></div><div class="item-amount income">${fmt(x.monto)}</div><div class="item-actions"><button class="btn-icon delete" onclick="deleteIngreso('${x.id}')">🗑</button></div></div>`).join('')
+    : `<div class="empty-state"><div class="emoji">💰</div><p>Sin ingresos este mes.<br>Toca + para agregar.</p></div>`;
 }
 
-// ===== RENDER: GASTOS OBLIGATORIOS =====
 function renderObligatorios() {
-  const key = getMonthKey(currentDate);
-  const data = getMonthData(key);
+  const data = getMonthData(getMonthKey(currentDate));
   const items = [...data.obligatorios].sort((a,b) => b.fecha.localeCompare(a.fecha));
-  const total = items.reduce((a, x) => a + x.monto, 0);
-  document.getElementById('total-obligatorios').textContent = fmt(total);
-  const el = document.getElementById('list-obligatorios');
-  if (!items.length) {
-    el.innerHTML = `<div class="empty-state"><div class="emoji">🏠</div><p>Sin gastos obligatorios.<br>Toca + para agregar uno.</p></div>`;
-    return;
-  }
-  el.innerHTML = items.map(x => `
-    <div class="list-item">
-      <div class="item-icon" style="background:${catColors[x.categoria]||'#EEF0FF'}">${catIcons[x.categoria]||'📦'}</div>
-      <div class="item-info">
-        <div class="item-name">${x.nombre}</div>
-        <div class="item-meta">${x.categoria} · ${formatDate(x.fecha)}</div>
-      </div>
-      <div class="item-amount expense">${fmt(x.monto)}</div>
-      <div class="item-actions">
-        <button class="btn-icon delete" onclick="deleteObligatorio('${x.id}')">🗑</button>
-      </div>
-    </div>`).join('');
+  document.getElementById('total-obligatorios').textContent = fmt(items.reduce((a,x)=>a+x.monto,0));
+  document.getElementById('list-obligatorios').innerHTML = items.length
+    ? items.map(x => `<div class="list-item"><div class="item-icon" style="background:${catColors[x.categoria]||'#EEF0FF'}">${catIcons[x.categoria]||'📦'}</div><div class="item-info"><div class="item-name">${x.nombre}</div><div class="item-meta">${x.categoria} · ${formatDate(x.fecha)}</div></div><div class="item-amount expense">${fmt(x.monto)}</div><div class="item-actions"><button class="btn-icon delete" onclick="deleteObligatorio('${x.id}')">🗑</button></div></div>`).join('')
+    : `<div class="empty-state"><div class="emoji">🏠</div><p>Sin gastos obligatorios.<br>Toca + para agregar.</p></div>`;
 }
 
-// ===== RENDER: GASTOS HORMIGA =====
 function renderHormiga() {
-  const key = getMonthKey(currentDate);
-  const data = getMonthData(key);
-  const settings = getSettings();
-  const total = data.hormiga.reduce((a, x) => a + x.monto, 0);
+  const data = getMonthData(getMonthKey(currentDate));
+  const s = getSettings();
+  const total = data.hormiga.reduce((a,x)=>a+x.monto,0);
   document.getElementById('total-hormiga').textContent = fmt(total);
-
-  // Limit section
+  const limit = s.hormigaLimit;
   const limitEl = document.getElementById('hormiga-limit-section');
-  const limit = settings.hormigaLimit;
   if (limit > 0) {
-    const pct = total / limit;
-    const pctNum = Math.round(pct * 100);
-    const color = pctNum >= 100 ? 'red' : pctNum >= 70 ? 'yellow' : 'green';
-    let alertHtml = '';
-    if (pctNum >= 100) alertHtml = `<div class="alert danger" style="margin-top:10px">🚨 ¡Superaste tu límite mensual!</div>`;
-    else if (pctNum >= 80) alertHtml = `<div class="alert warning" style="margin-top:10px">⚠️ Vas por el ${pctNum}% de tu límite</div>`;
-    limitEl.innerHTML = `
-      <div class="hormiga-limit-card">
-        <div class="hormiga-limit-header">
-          <span class="hormiga-limit-title">Límite mensual</span>
-          <button onclick="openModal('modal-limite-hormiga')" style="background:var(--primary-bg);color:var(--primary);border:none;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;">Cambiar</button>
-        </div>
-        <div class="progress-bar"><div class="progress-fill ${color}" style="width:${Math.min(pct,1)*100}%"></div></div>
-        <div class="hormiga-amounts" style="margin-top:6px">
-          <span class="hormiga-spent">${fmt(total)}</span>
-          <span class="hormiga-limit">de ${fmt(limit)} (${pctNum}%)</span>
-        </div>
-        ${alertHtml}
-      </div>`;
+    const pct = total/limit;
+    const pNum = Math.round(pct*100);
+    const color = pNum >= 100 ? 'red' : pNum >= 70 ? 'yellow' : 'green';
+    const alertHtml = pNum >= 100 ? `<div class="alert danger" style="margin-top:10px">🚨 ¡Superaste tu límite!</div>` : pNum >= 80 ? `<div class="alert warning" style="margin-top:10px">⚠️ Vas por el ${pNum}% del límite</div>` : '';
+    limitEl.innerHTML = `<div class="hormiga-limit-card"><div class="hormiga-limit-header"><span class="hormiga-limit-title">Límite mensual</span><button onclick="openModal('modal-limite-hormiga')" style="background:var(--primary-bg);color:var(--primary);border:none;border-radius:8px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer">Cambiar</button></div><div class="progress-bar"><div class="progress-fill ${color}" style="width:${Math.min(pct,1)*100}%"></div></div><div class="hormiga-amounts" style="margin-top:6px"><span style="font-weight:700">${fmt(total)}</span><span style="color:var(--text-2)">de ${fmt(limit)} (${pNum}%)</span></div>${alertHtml}</div>`;
   } else {
-    limitEl.innerHTML = `<div class="alert info" style="margin-bottom:12px">Sin límite configurado. <button onclick="openModal('modal-limite-hormiga')" style="color:var(--primary);font-weight:700;background:none;border:none;cursor:pointer;">Configurar ahora →</button></div>`;
+    limitEl.innerHTML = `<div class="alert info" style="margin-bottom:12px">Sin límite. <button onclick="openModal('modal-limite-hormiga')" style="color:var(--primary);font-weight:700;background:none;border:none;cursor:pointer">Configurar →</button></div>`;
   }
-
-  // List grouped by day
   const el = document.getElementById('list-hormiga');
-  if (!data.hormiga.length) {
-    el.innerHTML = `<div class="empty-state"><div class="emoji">☕</div><p>Sin gastos hormiga.<br>Toca + para agregar uno.</p></div>`;
-    return;
-  }
+  if (!data.hormiga.length) { el.innerHTML = `<div class="empty-state"><div class="emoji">☕</div><p>Sin gastos hormiga.<br>Toca + para agregar.</p></div>`; return; }
   const sorted = [...data.hormiga].sort((a,b) => b.fecha.localeCompare(a.fecha));
   const groups = {};
-  sorted.forEach(x => { (groups[x.fecha] = groups[x.fecha] || []).push(x); });
+  sorted.forEach(x => (groups[x.fecha] = groups[x.fecha]||[]).push(x));
   el.innerHTML = Object.entries(groups).map(([fecha, items]) => {
-    const dayTotal = items.reduce((a, x) => a + x.monto, 0);
-    return `
-      <div class="date-group-header">${formatDate(fecha)} <span style="float:right;color:var(--danger)">${fmt(dayTotal)}</span></div>
-      ${items.map(x => `
-        <div class="list-item">
-          <div class="item-icon" style="background:#FEF3C7">☕</div>
-          <div class="item-info">
-            <div class="item-name">${x.descripcion}</div>
-            <div class="item-meta">gasto hormiga</div>
-          </div>
-          <div class="item-amount expense">${fmt(x.monto)}</div>
-          <div class="item-actions">
-            <button class="btn-icon delete" onclick="deleteHormiga('${x.id}')">🗑</button>
-          </div>
-        </div>`).join('')}`;
+    const dt = items.reduce((a,x)=>a+x.monto,0);
+    return `<div class="date-group-header">${formatDate(fecha)} <span style="float:right;color:var(--danger)">${fmt(dt)}</span></div>${items.map(x=>`<div class="list-item"><div class="item-icon" style="background:#FEF3C7">☕</div><div class="item-info"><div class="item-name">${x.descripcion}</div><div class="item-meta">gasto hormiga</div></div><div class="item-amount expense">${fmt(x.monto)}</div><div class="item-actions"><button class="btn-icon delete" onclick="deleteHormiga('${x.id}')">🗑</button></div></div>`).join('')}`;
   }).join('');
 }
 
-// ===== RENDER: DEUDAS =====
 function renderDeudas() {
   const deudas = getDeudas();
   const hoy = today();
-  const totalPendiente = deudas.reduce((a, d) => {
-    const cuotaValor = d.montoTotal / d.cuotasTotales;
-    return a + cuotaValor * (d.cuotasTotales - d.cuotasPagadas);
-  }, 0);
-  document.getElementById('total-deudas-pendiente').textContent = fmt(totalPendiente) + ' pend.';
+  const totalPend = deudas.reduce((a,d) => a + (d.montoTotal/d.cuotasTotales)*(d.cuotasTotales-d.cuotasPagadas), 0);
+  document.getElementById('total-deudas-pendiente').textContent = fmt(totalPend) + ' pend.';
   const el = document.getElementById('list-deudas');
-  if (!deudas.length) {
-    el.innerHTML = `<div class="empty-state"><div class="emoji">🎉</div><p>Sin deudas registradas.<br>Toca + para agregar una.</p></div>`;
-    return;
-  }
+  if (!deudas.length) { el.innerHTML = `<div class="empty-state"><div class="emoji">🎉</div><p>Sin deudas registradas.<br>Toca + para agregar.</p></div>`; return; }
   el.innerHTML = deudas.map(d => {
-    const cuotaValor = d.montoTotal / d.cuotasTotales;
+    const cuotaVal = d.montoTotal/d.cuotasTotales;
     const restantes = d.cuotasTotales - d.cuotasPagadas;
-    const pctPagado = (d.cuotasPagadas / d.cuotasTotales) * 100;
-    const pendiente = cuotaValor * restantes;
-    const isComplete = restantes === 0;
-
+    const pct = (d.cuotasPagadas/d.cuotasTotales)*100;
+    const pendiente = cuotaVal * restantes;
+    const done = restantes === 0;
     let alertHtml = '';
-    if (!isComplete && d.fechaProximoPago) {
+    if (!done && d.fechaProximoPago) {
       const diff = daysBetween(d.fechaProximoPago, hoy);
-      if (diff < 0) alertHtml = `<div class="debt-alert-danger">🔴 Pago vencido desde ${formatDate(d.fechaProximoPago)}</div>`;
+      if (diff < 0) alertHtml = `<div class="debt-alert-danger">🔴 Pago vencido (${formatDate(d.fechaProximoPago)})</div>`;
       else if (diff === 0) alertHtml = `<div class="debt-alert-danger">🔴 ¡Pago vence hoy!</div>`;
-      else if (diff <= 3) alertHtml = `<div class="debt-alert">⚠️ Próximo pago en ${diff} día${diff>1?'s':''}: ${formatDate(d.fechaProximoPago)}</div>`;
+      else if (diff <= 3) alertHtml = `<div class="debt-alert">⚠️ Pago en ${diff} día${diff>1?'s':''}: ${formatDate(d.fechaProximoPago)}</div>`;
     }
-
-    return `
-      <div class="debt-card">
-        <div class="debt-header">
-          <div>
-            <div class="debt-name">${d.nombre}</div>
-            <div class="debt-cat">${catIcons[d.categoria]||'📦'} ${d.categoria}${isComplete ? ' · ✅ Pagada' : ''}</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:18px;font-weight:800;color:${isComplete?'var(--success)':'var(--warning)'}">${fmt(pendiente)}</div>
-            <div style="font-size:11px;color:var(--text-2)">pendiente</div>
-          </div>
-        </div>
-        <div class="progress-wrap">
-          <div class="progress-bar"><div class="progress-fill ${isComplete?'green':'yellow'}" style="width:${pctPagado}%"></div></div>
-          <div class="progress-label"><span>${Math.round(pctPagado)}% pagado</span><span>${fmt(d.montoTotal)} total</span></div>
-        </div>
-        <div class="debt-stats">
-          <div class="debt-stat">
-            <div class="ds-val">${fmt(cuotaValor)}</div>
-            <div class="ds-label">valor cuota</div>
-          </div>
-          <div class="debt-stat">
-            <div class="ds-val">${d.cuotasPagadas}/${d.cuotasTotales}</div>
-            <div class="ds-label">cuotas</div>
-          </div>
-          <div class="debt-stat">
-            <div class="ds-val">${restantes}</div>
-            <div class="ds-label">restantes</div>
-          </div>
-        </div>
-        ${alertHtml}
-        <div class="debt-actions">
-          <button class="btn-pay" onclick="pagarCuota('${d.id}')" ${isComplete?'disabled':''}>
-            ${isComplete ? '✅ Saldada' : '💸 Marcar cuota pagada'}
-          </button>
-          <button class="btn-delete-debt" onclick="deleteDeuda('${d.id}')">🗑</button>
-        </div>
-      </div>`;
+    return `<div class="debt-card"><div class="debt-header"><div><div class="debt-name">${d.nombre}</div><div class="debt-cat">${catIcons[d.categoria]||'📦'} ${d.categoria}${done?' · ✅ Pagada':''}</div></div><div style="text-align:right"><div style="font-size:18px;font-weight:800;color:${done?'var(--success)':'var(--warning)'}">${fmt(pendiente)}</div><div style="font-size:11px;color:var(--text-2)">pendiente</div></div></div><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill ${done?'green':'yellow'}" style="width:${pct}%"></div></div><div class="progress-label"><span>${Math.round(pct)}% pagado</span><span>${fmt(d.montoTotal)} total</span></div></div><div class="debt-stats"><div class="debt-stat"><div class="ds-val">${fmt(cuotaVal)}</div><div class="ds-label">valor cuota</div></div><div class="debt-stat"><div class="ds-val">${d.cuotasPagadas}/${d.cuotasTotales}</div><div class="ds-label">cuotas</div></div><div class="debt-stat"><div class="ds-val">${restantes}</div><div class="ds-label">restantes</div></div></div>${alertHtml}<div class="debt-actions"><button class="btn-pay" onclick="pagarCuota('${d.id}')" ${done?'disabled':''}>  ${done?'✅ Saldada':'💸 Marcar cuota pagada'}</button><button class="btn-delete-debt" onclick="deleteDeuda('${d.id}')">🗑</button></div></div>`;
   }).join('');
 }
 
-// ===== RENDER: CONFIG =====
 function renderConfig() {
   const s = getSettings();
-  document.getElementById('cfg-user1').value = s.user1 || '';
-  document.getElementById('cfg-user2').value = s.user2 || '';
-  document.getElementById('cfg-hormiga-limit').value = s.hormigaLimit || '';
+  document.getElementById('cfg-user1').value = s.user1||'';
+  document.getElementById('cfg-user2').value = s.user2||'';
+  document.getElementById('cfg-hormiga-limit').value = s.hormigaLimit||'';
+  if (currentUser) {
+    document.getElementById('config-user-badge').innerHTML = `<div class="user-email-badge">👤 ${currentUser.email}</div>`;
+  }
 }
 
-// ===== DATE FORMAT =====
-function formatDate(str) {
-  if (!str) return '';
-  const d = new Date(str + 'T12:00:00');
-  return d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
-}
-
-// ===== RENDER ALL =====
 function renderAll() {
   const s = getSettings();
-  const name = s.user1 && s.user2 ? `${s.user1} & ${s.user2}` : '💜 FinanzasDúo';
-  document.getElementById('topbar-title').textContent = name.length > 18 ? '💜 FinanzasDúo' : name;
+  const name = s.user1 ? (s.user2 ? `${s.user1} & ${s.user2}` : s.user1) : '💜 FinanzasDúo';
+  document.getElementById('topbar-title').textContent = name.length > 20 ? '💜 FinanzasDúo' : name;
   renderResumen();
   renderIngresos();
   renderObligatorios();
@@ -1345,10 +1060,6 @@ function renderAll() {
   renderDeudas();
   renderConfig();
 }
-
-// ===== INIT =====
-updateMonthLabel();
-renderAll();
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
